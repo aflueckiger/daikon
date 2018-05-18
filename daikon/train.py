@@ -83,7 +83,7 @@ def train(source_data: str,
     # define computation graph
     logger.info("Building computation graph.")
 
-    graph_components = define_computation_graph(source_vocab.size, target_vocab.size, batch_size)
+    graph_components = define_computation_graph(source_vocab.size, target_vocab.size, batch_size, is_training=True)
     encoder_inputs, decoder_targets, decoder_inputs, loss, train_step, decoder_logits, summary = graph_components
 
     saver = tf.train.Saver()
