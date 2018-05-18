@@ -62,7 +62,18 @@ def translate_line(session: tf.Session,
 
         # first session result, first item in batch, target symbol at last position
         next_symbol_logits = logits_result[0][0][-1]
+
         next_id = np.argmax(next_symbol_logits)
+
+        # # get the the id with the highest logit while suppress the <unk> token
+        # # get ids of the two items with highest value
+        # ind_candidates = np.argpartition(next_symbol_logits, -2)[-2:]
+        # ind_candidates = ind_candidates[np.argsort(next_symbol_logits[ind_candidates])]  # sort candidates
+        # if ind_candidates[-1] != C.UNK_ID:
+        #     next_id = ind_candidates[-1]
+        # else:
+        #     next_id = ind_candidates[-2]
+        #
 
         if next_id in [C.EOS_ID, C.PAD_ID]:
             break
@@ -84,7 +95,8 @@ def translate_lines(load_from: str,
     source_vocab, target_vocab = load_vocabs(load_from)
 
     # fix batch_size to 1
-    encoder_inputs, decoder_targets, decoder_inputs, _, _, decoder_logits, _ = compgraph.define_computation_graph(source_vocab.size, target_vocab.size, 1)
+    encoder_inputs, decoder_targets, decoder_inputs, _, _, decoder_logits, _ = compgraph.define_computation_graph(
+        source_vocab.size, target_vocab.size, 1)
 
     saver = tf.train.Saver()
 
@@ -96,7 +108,8 @@ def translate_lines(load_from: str,
         translations = []
 
         for line in input_lines:
-            translation = translate_line(session, line, source_vocab, target_vocab, encoder_inputs, decoder_inputs, decoder_targets, decoder_logits)
+            translation = translate_line(session, line, source_vocab, target_vocab,
+                                         encoder_inputs, decoder_inputs, decoder_targets, decoder_logits)
             translations.append(translation)
 
     return translations
@@ -110,7 +123,8 @@ def translate_file(load_from: str, input_file_handle: io.TextIOWrapper, output_f
     source_vocab, target_vocab = load_vocabs(load_from)
 
     # fix batch_size to 1
-    encoder_inputs, decoder_targets, decoder_inputs, _, _, decoder_logits, _ = compgraph.define_computation_graph(source_vocab.size, target_vocab.size, 1)
+    encoder_inputs, decoder_targets, decoder_inputs, _, _, decoder_logits, _ = compgraph.define_computation_graph(
+        source_vocab.size, target_vocab.size, 1)
 
     saver = tf.train.Saver()
 
@@ -120,5 +134,6 @@ def translate_file(load_from: str, input_file_handle: io.TextIOWrapper, output_f
         saver.restore(session, os.path.join(load_from, C.MODEL_FILENAME))
 
         for line in input_file_handle:
-            translation = translate_line(session, line, source_vocab, target_vocab, encoder_inputs, decoder_inputs, decoder_targets, decoder_logits)
+            translation = translate_line(session, line, source_vocab, target_vocab,
+                                         encoder_inputs, decoder_inputs, decoder_targets, decoder_logits)
             output_file_handle.write(translation + "\n")
